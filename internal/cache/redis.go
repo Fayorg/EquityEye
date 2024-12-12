@@ -2,6 +2,7 @@ package cache
 
 import (
 	"EquityEye/internal/logs"
+	"EquityEye/types"
 	"context"
 	"github.com/go-redis/redis/v8"
 )
@@ -24,4 +25,16 @@ func NewRedisCache(url string) *RedisCache {
 		client: rdb,
 		ctx:    context.Background(),
 	}
+}
+
+func (rc *RedisCache) RegisterProvider(provider types.Provider) error {
+	return nil
+}
+
+func (rc *RedisCache) IncreaseUsage(provider types.Provider) (int, error) {
+	return 0, nil
+}
+
+func (rc *RedisCache) GetProvider(providerName []string) types.Provider {
+	return types.Provider{}
 }
