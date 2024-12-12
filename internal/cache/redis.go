@@ -4,7 +4,9 @@ import (
 	"EquityEye/internal/logs"
 	"EquityEye/types"
 	"context"
+	"fmt"
 	"github.com/go-redis/redis/v8"
+	"time"
 )
 
 type RedisCache struct {
@@ -28,7 +30,23 @@ func NewRedisCache(url string) *RedisCache {
 }
 
 func (rc *RedisCache) RegisterProvider(provider types.Provider) error {
-	return nil
+	_, err := rc.client.XAdd(rc.ctx, &redis.XAddArgs{
+		Stream: provider.Name,
+		MinID:  fmt.Sprintf("%d-0", (time.Now().Unix()-int64(provider.LimitTimeframe))*1000),
+		Values: map[string]interface{}{
+			"timestamp": time.Now().Unix(),
+		},
+	}).Result()
+
+	return err
+}
+
+func (rc *RedisCache) GetUsage(provider types.Provider) (int, error) {
+	length, err := rc.client.XLen(rc.ctx, provider.Name).Result()
+	if err != nil {
+		return 0, err
+	}
+	return int(length), nil
 }
 
 func (rc *RedisCache) IncreaseUsage(provider types.Provider) (int, error) {
