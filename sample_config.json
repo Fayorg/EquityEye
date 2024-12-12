@@ -1,0 +1,19 @@
+{
+  "cache": {
+    "url": "redis://<user>:<pass>@localhost:6379/<db>"
+  },
+  "providers": [
+    {
+      "name": "Testing",
+      "providerName": "MARKET",
+      "key": "supersecret",
+      "limit": 0
+    },
+    {
+      "name": "Testin2g",
+      "providerName": "MARKET",
+      "key": "supersecret",
+      "limit": 0
+    }
+  ]
+}
