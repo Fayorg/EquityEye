@@ -4,9 +4,8 @@ import (
 	cache "EquityEye/internal/cache"
 	config "EquityEye/internal/config"
 	"EquityEye/internal/logs"
-	"fmt"
+	"EquityEye/internal/provider"
 	"os"
-	"time"
 )
 
 func main() {
@@ -16,34 +15,16 @@ func main() {
 		logs.Error(err.Error())
 		os.Exit(0)
 	}
-	cache := cache.NewRedisCache(cfg.Cache.Url)
+	_ = cache.NewRedisCache(cfg.Cache.Url)
 
-	for _, provider := range cfg.Providers {
-		err := cache.RegisterProvider(provider)
-		if err != nil {
-			logs.Error("Could not register provider %s", provider.Name)
-			os.Exit(0)
-		}
+	provider.InitializeProviders(cfg.Providers)
+
+	tickers := provider.GetGloballyAvailableTickers()
+	logs.Info("Available tickers: %v", tickers)
+
+	providers, err := provider.GetProviderForTicker(tickers[0])
+	logs.Info("Available provider for ticker %v: ", tickers[0])
+	for _, p := range providers {
+		logs.Info("%v", p.GetProviderConfigName())
 	}
-
-	for true {
-		err := cache.RegisterProvider(cfg.Providers[0])
-		if err != nil {
-			logs.Error("Could not register provider %s", cfg.Providers[0].Name)
-			os.Exit(0)
-		}
-		val, err := cache.GetUsage(cfg.Providers[0])
-		if err != nil {
-			logs.Error("Could not get usage for provider %s", cfg.Providers[0].Name)
-			os.Exit(0)
-		}
-		logs.Info("Usage for provider %s is %d", cfg.Providers[0].Name, val)
-
-		// Sleep for 1 second
-		time.Sleep(1 * time.Second)
-	}
-
-	fmt.Println("Using config : ", cfg.Environment)
-
-	fmt.Println("Hello World")
 }

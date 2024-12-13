@@ -5,14 +5,14 @@
   "providers": [
     {
       "name": "Testing",
-      "providerName": "MARKET",
+      "providerName": "BINANCE",
       "key": "supersecret",
       "limit": 100,
       "limitTimeframe": 5
     },
     {
       "name": "Testin2g",
-      "providerName": "MARKET",
+      "providerName": "BINANCE",
       "key": "supersecret",
       "limit": 0
     }

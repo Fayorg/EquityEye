@@ -15,7 +15,7 @@ type EnvConfig struct {
 
 type Config struct {
 	Environment bool
-	Providers   []types.Provider `yaml:"providers" json:"providers"`
+	Providers   []types.ProviderConfiguration `yaml:"providers" json:"providers"`
 	Cache       struct {
 		Url string `yaml:"url" json:"url"`
 	} `json:"cache"`

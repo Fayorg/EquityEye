@@ -29,7 +29,20 @@ func NewRedisCache(url string) *RedisCache {
 	}
 }
 
-func (rc *RedisCache) RegisterProvider(provider types.Provider) error {
+// RegisterProvider This function is not used but it might be useful for other implementation
+func (rc *RedisCache) RegisterProvider(provider types.ProviderConfiguration) error {
+	return nil
+}
+
+func (rc *RedisCache) GetUsage(provider types.ProviderConfiguration) (int, error) {
+	length, err := rc.client.XLen(rc.ctx, provider.Name).Result()
+	if err != nil {
+		return 0, err
+	}
+	return int(length), nil
+}
+
+func (rc *RedisCache) IncreaseUsage(provider types.ProviderConfiguration) error {
 	_, err := rc.client.XAdd(rc.ctx, &redis.XAddArgs{
 		Stream: provider.Name,
 		MinID:  fmt.Sprintf("%d-0", (time.Now().Unix()-int64(provider.LimitTimeframe))*1000),
@@ -41,18 +54,6 @@ func (rc *RedisCache) RegisterProvider(provider types.Provider) error {
 	return err
 }
 
-func (rc *RedisCache) GetUsage(provider types.Provider) (int, error) {
-	length, err := rc.client.XLen(rc.ctx, provider.Name).Result()
-	if err != nil {
-		return 0, err
-	}
-	return int(length), nil
-}
-
-func (rc *RedisCache) IncreaseUsage(provider types.Provider) (int, error) {
-	return 0, nil
-}
-
-func (rc *RedisCache) GetProvider(providerName []string) types.Provider {
-	return types.Provider{}
+func (rc *RedisCache) GetProvider(providerType string) (string, error) {
+	return "", nil
 }

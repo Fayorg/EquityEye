@@ -1,8 +1,7 @@
 package types
 
 type Ticker struct {
-	Name        string
-	Tick        string
-	Market      string
-	RequestName string
+	Name   string
+	Tick   string
+	Market string
 }
