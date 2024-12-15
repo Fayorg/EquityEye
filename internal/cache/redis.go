@@ -31,8 +31,6 @@ func NewRedisCache(url string) *RedisCache {
 
 // RegisterProvider This function is not used but it might be useful for other implementation
 func (rc *RedisCache) RegisterProvider(provider types.ProviderConfiguration) error {
-	rc.client.Set(rc.ctx, provider.Name, 0, 0)
-
 	return nil
 }
 
@@ -61,30 +59,16 @@ func (rc *RedisCache) IncreaseUsageBy(provider types.ProviderConfiguration, valu
 }
 
 func (rc *RedisCache) TemporaryDisableProvider(provider types.ProviderConfiguration, duration time.Duration) error {
-	_, err := rc.client.Set(rc.ctx, fmt.Sprintf("%s", provider.Name), time.Now().Add(duration), 0).Result()
+	_, err := rc.client.Set(rc.ctx, fmt.Sprintf("%s:disabled", provider.Name), time.Now().Add(duration), duration).Result()
 	return err
 }
 
 func (rc *RedisCache) IsProviderTemporarilyDisabled(provider types.ProviderConfiguration) (bool, error) {
-	prov, err := rc.client.Get(rc.ctx, provider.Name).Result()
+	ttl, err := rc.client.TTL(rc.ctx, fmt.Sprintf("%s:disabled", provider.Name)).Result()
 	if err != nil {
-		return true, err
+		return false, err
 	}
-	logs.Info("Provider %s is disabled until %s", provider.Name, prov)
-
-	if prov == "0" {
-		return false, nil
-	}
-
-	date, err := time.Parse(time.RFC3339, prov)
-	if err != nil {
-		return true, err
-	}
-	if date.After(time.Now()) {
-		return true, nil
-	}
-
-	return false, nil
+	return ttl > 0, nil
 }
 
 func (rc *RedisCache) GetProvider(providerType string) (string, error) {

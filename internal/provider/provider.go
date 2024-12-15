@@ -21,14 +21,15 @@ var availableTickers = make(map[types.Ticker][]Provider)
 
 func InitializeProviders(provider []types.ProviderConfiguration, cache cache.Cache) {
 	for _, p := range provider {
+		err := cache.RegisterProvider(p)
+		if err != nil {
+			logs.Error("Could not register provider %s", p.ProviderName)
+			continue
+		}
+
 		switch p.ProviderName {
 		case "BINANCE":
 			binanceProvider := NewBinanceProvider(cache, p)
-			err := cache.RegisterProvider(p)
-			if err != nil {
-				logs.Error("Could not register provider %s", p.ProviderName)
-				continue
-			}
 			providers[p.ProviderName] = binanceProvider
 			for _, ticker := range binanceProvider.GetAvailableTicker() {
 				availableTickers[ticker] = append(availableTickers[ticker], binanceProvider)
