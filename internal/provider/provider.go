@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"EquityEye/internal/cache"
 	"EquityEye/internal/logs"
 	"EquityEye/types"
 	"errors"
@@ -8,6 +9,7 @@ import (
 
 type Provider interface {
 	GetProviderName() string
+	GetProviderConfiguration() types.ProviderConfiguration
 	GetProviderConfigName() string
 
 	GetAvailableTicker() []types.Ticker
@@ -17,11 +19,16 @@ type Provider interface {
 var providers = make(map[string]Provider)
 var availableTickers = make(map[types.Ticker][]Provider)
 
-func InitializeProviders(provider []types.ProviderConfiguration) {
+func InitializeProviders(provider []types.ProviderConfiguration, cache cache.Cache) {
 	for _, p := range provider {
 		switch p.ProviderName {
 		case "BINANCE":
-			binanceProvider := NewBinanceProvider(p)
+			binanceProvider := NewBinanceProvider(cache, p)
+			err := cache.RegisterProvider(p)
+			if err != nil {
+				logs.Error("Could not register provider %s", p.ProviderName)
+				continue
+			}
 			providers[p.ProviderName] = binanceProvider
 			for _, ticker := range binanceProvider.GetAvailableTicker() {
 				availableTickers[ticker] = append(availableTickers[ticker], binanceProvider)

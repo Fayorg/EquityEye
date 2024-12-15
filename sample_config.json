@@ -6,15 +6,9 @@
     {
       "name": "Testing",
       "providerName": "BINANCE",
-      "key": "supersecret",
-      "limit": 100,
-      "limitTimeframe": 5
-    },
-    {
-      "name": "Testin2g",
-      "providerName": "BINANCE",
-      "key": "supersecret",
-      "limit": 0
+      "key": "",
+      "limit": 6000,
+      "limitTimeframe": 60
     }
   ]
 }

@@ -105,7 +105,7 @@ func validateConfig(config *Config) error {
 			return errors.New("provider name is required")
 		}
 		if provider.Key == "" {
-			return errors.New("provider api key is required")
+			logs.Info("Provider %s has no key", provider.Name)
 		}
 		if provider.Limit <= 0 {
 			logs.Info("Provider %s api limit is set to 0", provider.Name)
