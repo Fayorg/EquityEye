@@ -5,6 +5,10 @@ services:
       - "6379:6379"
     volumes:
       - cache:/data
+  cache-dashboard:
+    image: redis/redisinsight:latest
+    ports:
+      - "5540:5540"
 
 volumes:
   cache:
