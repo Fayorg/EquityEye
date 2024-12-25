@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -22,10 +23,10 @@ const (
 	BinanceAPIURL       = "https://api.binance.com"
 )
 
-var BinanceTickers = map[types.Ticker]string{
-	{Name: "BTC", Tick: "BTC", Market: "USD"}: "BTCUSDT",
-}
+// BinanceTickers could be also hard codded for a more robust solution
+var BinanceTickers = map[types.Ticker]string{}
 
+// NewBinanceProvider could be merge with the InitializeProvider but for now this works
 func NewBinanceProvider(cache cache.Cache, configuration types.ProviderConfiguration) Provider {
 	return &BinanceProvider{
 		Cache:         cache,
@@ -33,19 +34,54 @@ func NewBinanceProvider(cache cache.Cache, configuration types.ProviderConfigura
 	}
 }
 
-func (b *BinanceProvider) GetProviderName() string {
-	return BinanceProviderName
+func (b *BinanceProvider) InitializeProvider() error {
+	type ResponseData struct {
+		Price  float64 `json:"price,string"`
+		Symbol string  `json:"symbol"`
+	}
+	dis, err := b.Cache.IsProviderTemporarilyDisabled(b.Configuration)
+	if err != nil {
+		return err
+	}
+	if dis {
+		return errors.New("provider is temporarily disabled")
+	}
+
+	resp, err := http.Get(fmt.Sprintf("%s/api/v3/ticker/price", BinanceAPIURL))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if err := b.checkForRateLimit(resp); err != nil {
+		return err
+	}
+	if err := b.Cache.IncreaseUsageBy(b.Configuration, 4); err != nil {
+		logs.Warn("Failed to increase usage for provider %s", b.Configuration.Name)
+	}
+
+	var data []ResponseData
+	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+		logs.Error("Failed to parse JSON: %v", err)
+	}
+	for _, d := range data {
+		if strings.HasSuffix(d.Symbol, "USDT") {
+			BinanceTickers[types.Ticker{Name: d.Symbol, Tick: d.Symbol[:len(d.Symbol)-4], Market: "USDT"}] = d.Symbol
+		}
+		continue
+	}
+	return nil
 }
 
-func (b *BinanceProvider) GetProviderConfigName() string {
-	return b.Configuration.Name
+func (b *BinanceProvider) GetProviderName() string {
+	return BinanceProviderName
 }
 
 func (b *BinanceProvider) GetProviderConfiguration() types.ProviderConfiguration {
 	return b.Configuration
 }
 
-func (b *BinanceProvider) GetAvailableTicker() []types.Ticker {
+func (b *BinanceProvider) GetAvailableTickers() []types.Ticker {
 	var tickers []types.Ticker
 	for ticker := range BinanceTickers {
 		tickers = append(tickers, ticker)
@@ -75,9 +111,9 @@ func (b *BinanceProvider) GetMarketDataForTicker(ticker types.Ticker) (float64, 
 	if err := b.checkForRateLimit(resp); err != nil {
 		return -1, err
 	}
-	/*if err := b.updateUsage(resp); err != nil {
-		return -1, err
-	}*/
+	if err := b.Cache.IncreaseUsageBy(b.Configuration, 2); err != nil {
+		logs.Warn("Failed to increase usage for provider %s", b.Configuration.Name)
+	}
 
 	var data ResponseData
 	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
@@ -92,12 +128,14 @@ func (b *BinanceProvider) checkForRateLimit(res *http.Response) error {
 		return nil
 	}
 
+	// Binance api will return a Retry-After in seconds. https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-rest-api-for-binance
 	wait, err := strconv.Atoi(res.Header.Get("Retry-After"))
 	if err != nil {
 		logs.Warn("Couldn't parse Retry-After header for provider %s. This could result in a IP-ban", b.Configuration.Name)
 		return errors.New("couldn't parse Retry-After header")
 	}
 
+	// See comment above
 	err = b.Cache.TemporaryDisableProvider(b.Configuration, time.Duration(wait)*time.Second)
 	if err != nil {
 		logs.Warn("Couldn't disable provider %s. This could result in a IP-ban", b.Configuration.Name)
@@ -113,14 +151,4 @@ func (b *BinanceProvider) checkForRateLimit(res *http.Response) error {
 	}
 
 	return errors.New("unknown error")
-}
-
-func (b *BinanceProvider) updateUsage(res *http.Response) error {
-	weight, err := strconv.Atoi(res.Header.Get("X-MBX-USED-WEIGHT"))
-	if err != nil {
-		logs.Warn("Couldn't parse X-MBX-USED-WEIGHT header for provider %s", b.Configuration.Name)
-		return errors.New("couldn't parse X-MBX-USED-WEIGHT header")
-	}
-
-	return b.Cache.IncreaseUsageBy(b.Configuration, weight)
 }

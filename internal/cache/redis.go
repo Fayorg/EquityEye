@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-redis/redis/v8"
+	"strconv"
 	"time"
 )
 
@@ -35,11 +36,27 @@ func (rc *RedisCache) RegisterProvider(provider types.ProviderConfiguration) err
 }
 
 func (rc *RedisCache) GetUsage(provider types.ProviderConfiguration) (int, error) {
-	length, err := rc.client.XLen(rc.ctx, provider.Name).Result()
+	// Get all the data from the stream
+	data, err := rc.client.XRange(rc.ctx, provider.Name, "-", "+").Result()
 	if err != nil {
 		return 0, err
 	}
-	return int(length), nil
+
+	// Calculate the usage
+	usage := 0
+	for _, d := range data {
+		for k, v := range d.Values {
+			if k == "used" {
+				val, err := strconv.Atoi(v.(string))
+				if err != nil {
+					return 0, err
+				}
+				usage += val
+			}
+		}
+	}
+
+	return usage, nil
 }
 
 func (rc *RedisCache) IncreaseUsage(provider types.ProviderConfiguration) error {
@@ -52,6 +69,7 @@ func (rc *RedisCache) IncreaseUsageBy(provider types.ProviderConfiguration, valu
 		MinID:  fmt.Sprintf("%d-0", (time.Now().Unix()-int64(provider.LimitTimeframe))*1000),
 		Values: map[string]interface{}{
 			"timestamp": time.Now().Unix(),
+			"used":      value,
 		},
 	}).Result()
 
