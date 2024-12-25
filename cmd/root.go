@@ -17,5 +17,6 @@ func init() {
 
 	rootCmd.AddCommand(configCmd)
 	rootCmd.AddCommand(providersCmd)
+	rootCmd.AddCommand(apiCmd)
 	// rootCmd.AddCommand(produceCmd)
 }
