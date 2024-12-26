@@ -45,3 +45,28 @@ These instructions will guide you through setting up EquityEye on your local mac
 ```bash
 git clone https://github.com/Fayorg/EquityEye
 cd equityeye
+```
+
+### License
+
+EquityEye is licensed under the CC BY-NC-SA 4.0 license.
+You are free to use and modify this software for personal or family purposes. Commercial use requires prior written permission from the author.
+
+For more details, see the LICENSE file.
+
+### Contributing
+
+We welcome contributions! Please follow these steps:
+
+1. Fork the repository.
+2. Create a new feature branch (git checkout -b feature/your-feature).
+3. Commit your changes (git commit -m 'Add your feature').
+4. Push to your branch (git push origin feature/your-feature).
+5. Open a pull request.
+
+### Contact
+
+If you have questions, feedback, or commercial licensing inquiries, please contact:
+
+- Author: [Elie "Fayorg" Baier](mailto:elie.baier@epfl.ch)
+- GitHub: [Fayorg](https://github.com/fayorg)
