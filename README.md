@@ -52,7 +52,7 @@ cd equityeye
 EquityEye is licensed under the CC BY-NC-SA 4.0 license.
 You are free to use and modify this software for personal or family purposes. Commercial use requires prior written permission from the author.
 
-For more details, see the LICENSE file.
+For more details, see the [LICENSE](LICENSE.md) file.
 
 ## Contributing
 
