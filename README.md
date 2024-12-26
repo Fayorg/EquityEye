@@ -47,14 +47,14 @@ git clone https://github.com/Fayorg/EquityEye
 cd equityeye
 ```
 
-### License
+## License
 
 EquityEye is licensed under the CC BY-NC-SA 4.0 license.
 You are free to use and modify this software for personal or family purposes. Commercial use requires prior written permission from the author.
 
 For more details, see the LICENSE file.
 
-### Contributing
+## Contributing
 
 We welcome contributions! Please follow these steps:
 
@@ -64,7 +64,7 @@ We welcome contributions! Please follow these steps:
 4. Push to your branch (git push origin feature/your-feature).
 5. Open a pull request.
 
-### Contact
+## Contact
 
 If you have questions, feedback, or commercial licensing inquiries, please contact:
 
