@@ -10,5 +10,14 @@ services:
     ports:
       - "5540:5540"
 
+  timescale:
+    image: timescale/timescaledb:latest-pg17
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: user
+      POSTGRES_DB: db
+
 volumes:
   cache:
